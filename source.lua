@@ -32,11 +32,7 @@ local Config = {
     KeyNote = "Enter your key to continue.",
 }
 
-local function Tween(obj, props, t)
-    TweenService:Create(obj, TweenInfo.new(t or 0.25, Enum.EasingStyle.Quad), props):Play()
-end
-
-local function TweenSingle(obj, prop, goal, t)
+local function Tween(obj, prop, goal, t)
     TweenService:Create(obj, TweenInfo.new(t or 0.25, Enum.EasingStyle.Quad), {[prop] = goal}):Play()
 end
 
@@ -54,8 +50,7 @@ end
 local function MakeDraggable(dragFrame, targetFrame)
     local dragging = false
     local dragStart, startPos
-
-    local function onInputBegan(input)
+    dragFrame.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             dragging = true
             dragStart = input.Position
@@ -66,17 +61,13 @@ local function MakeDraggable(dragFrame, targetFrame)
                 end
             end)
         end
-    end
-
-    local function onInputChanged(input)
+    end)
+    UserInputService.InputChanged:Connect(function(input)
         if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
             local delta = input.Position - dragStart
             targetFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
         end
-    end
-
-    dragFrame.InputBegan:Connect(onInputBegan)
-    UserInputService.InputChanged:Connect(onInputChanged)
+    end)
 end
 
 function Moxie:SetTheme(theme)
@@ -106,47 +97,39 @@ end
 
 function Moxie:KeySystem()
     if not Config.KeySystem then return true end
-
     if isfile and isfile(Config.KeyFile) then
         local saved = readfile(Config.KeyFile)
         for _, k in ipairs(Config.Keys) do
             if saved == k then return true end
         end
     end
-
     local result = false
     local done = false
-
     local gui = Instance.new("ScreenGui")
     gui.Name = "MoxieKey"
     gui.ResetOnSpawn = false
     gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     gui.Parent = game.CoreGui
-
     local bg = Instance.new("Frame")
     bg.Size = UDim2.new(1,0,1,0)
     bg.BackgroundColor3 = Color3.fromRGB(0,0,0)
     bg.BackgroundTransparency = 0.4
     bg.BorderSizePixel = 0
     bg.Parent = gui
-
-    local panelWidth = IsMobile and 340 or 460
     local panel = Instance.new("Frame")
-    panel.Size = UDim2.new(0,panelWidth,0,290)
-    panel.Position = UDim2.new(0.5,-panelWidth/2,0.5,-145)
+    panel.Size = UDim2.new(0,460,0,290)
+    panel.Position = UDim2.new(0.5,-230,0.5,-145)
     panel.BackgroundColor3 = ActiveTheme.Main
     panel.BorderSizePixel = 0
     panel.Parent = gui
     Instance.new("UICorner", panel).CornerRadius = UDim.new(0,18)
     ApplyGradient(panel)
-
     local topBar = Instance.new("Frame")
     topBar.Size = UDim2.new(1,0,0,55)
     topBar.BackgroundColor3 = ActiveTheme.Secondary
     topBar.BorderSizePixel = 0
     topBar.Parent = panel
     Instance.new("UICorner", topBar).CornerRadius = UDim.new(0,18)
-
     local topTitle = Instance.new("TextLabel")
     topTitle.Size = UDim2.new(1,-20,1,0)
     topTitle.Position = UDim2.new(0,15,0,0)
@@ -154,10 +137,9 @@ function Moxie:KeySystem()
     topTitle.Text = Config.KeyTitle
     topTitle.TextColor3 = ActiveTheme.Text
     topTitle.Font = Enum.Font.GothamBold
-    topTitle.TextSize = IsMobile and 15 or 17
+    topTitle.TextSize = 17
     topTitle.TextXAlignment = Enum.TextXAlignment.Left
     topTitle.Parent = topBar
-
     local note = Instance.new("TextLabel")
     note.Size = UDim2.new(1,-30,0,35)
     note.Position = UDim2.new(0,15,0,65)
@@ -169,7 +151,6 @@ function Moxie:KeySystem()
     note.TextWrapped = true
     note.TextXAlignment = Enum.TextXAlignment.Left
     note.Parent = panel
-
     local inputBg = Instance.new("Frame")
     inputBg.Size = UDim2.new(1,-30,0,46)
     inputBg.Position = UDim2.new(0,15,0,110)
@@ -177,7 +158,6 @@ function Moxie:KeySystem()
     inputBg.BorderSizePixel = 0
     inputBg.Parent = panel
     Instance.new("UICorner", inputBg).CornerRadius = UDim.new(0,10)
-
     local input = Instance.new("TextBox")
     input.Size = UDim2.new(1,-20,1,0)
     input.Position = UDim2.new(0,10,0,0)
@@ -190,7 +170,6 @@ function Moxie:KeySystem()
     input.TextSize = 14
     input.TextXAlignment = Enum.TextXAlignment.Left
     input.Parent = inputBg
-
     local status = Instance.new("TextLabel")
     status.Size = UDim2.new(1,-30,0,20)
     status.Position = UDim2.new(0,15,0,165)
@@ -201,7 +180,6 @@ function Moxie:KeySystem()
     status.TextSize = 13
     status.TextXAlignment = Enum.TextXAlignment.Left
     status.Parent = panel
-
     local submitBtn = Instance.new("TextButton")
     submitBtn.Size = UDim2.new(1,-30,0,44)
     submitBtn.Position = UDim2.new(0,15,0,195)
@@ -212,7 +190,6 @@ function Moxie:KeySystem()
     submitBtn.TextSize = 15
     submitBtn.Parent = panel
     Instance.new("UICorner", submitBtn).CornerRadius = UDim.new(0,10)
-
     local discord = Instance.new("TextLabel")
     discord.Size = UDim2.new(1,-30,0,20)
     discord.Position = UDim2.new(0,15,0,250)
@@ -223,7 +200,6 @@ function Moxie:KeySystem()
     discord.TextSize = 12
     discord.TextXAlignment = Enum.TextXAlignment.Center
     discord.Parent = panel
-
     submitBtn.MouseButton1Click:Connect(function()
         local entered = input.Text
         local valid = false
@@ -234,41 +210,36 @@ function Moxie:KeySystem()
             if writefile then writefile(Config.KeyFile, entered) end
             status.TextColor3 = Color3.fromRGB(0,230,100)
             status.Text = "Key accepted!"
-            TweenSingle(submitBtn, "BackgroundColor3", Color3.fromRGB(0,200,80), 0.3)
+            Tween(submitBtn, "BackgroundColor3", Color3.fromRGB(0,200,80), 0.3)
             task.wait(1)
             result = true
             done = true
             gui:Destroy()
         else
             status.Text = "Invalid key."
-            TweenSingle(inputBg, "BackgroundColor3", Color3.fromRGB(80,20,20), 0.1)
-            task.delay(0.3, function() TweenSingle(inputBg, "BackgroundColor3", ActiveTheme.Secondary, 0.3) end)
+            Tween(inputBg, "BackgroundColor3", Color3.fromRGB(80,20,20), 0.1)
+            task.delay(0.3, function() Tween(inputBg, "BackgroundColor3", ActiveTheme.Secondary, 0.3) end)
         end
     end)
-
     repeat task.wait() until done
     return result
 end
 
 function Moxie:LoadingScreen()
     if not Config.Loading then return end
-
     local gui = Instance.new("ScreenGui")
     gui.Name = "MoxieLoading"
     gui.ResetOnSpawn = false
     gui.Parent = game.CoreGui
-
     local bg = Instance.new("Frame")
     bg.Size = UDim2.new(1,0,1,0)
     bg.BackgroundColor3 = Color3.fromRGB(8,8,8)
     bg.BorderSizePixel = 0
     bg.Parent = gui
-
     local bgGrad = Instance.new("UIGradient")
     bgGrad.Color = ColorSequence.new{ColorSequenceKeypoint.new(0,Color3.fromRGB(8,8,8)),ColorSequenceKeypoint.new(1,Color3.fromRGB(25,8,40))}
     bgGrad.Rotation = 135
     bgGrad.Parent = bg
-
     local particles = {}
     for i = 1, 20 do
         local p = Instance.new("Frame")
@@ -281,14 +252,11 @@ function Moxie:LoadingScreen()
         Instance.new("UICorner",p).CornerRadius = UDim.new(1,0)
         table.insert(particles, p)
     end
-
-    local ringSize = IsMobile and 140 or 200
     local ring1 = Instance.new("Frame")
-    ring1.Size = UDim2.new(0,ringSize,0,ringSize)
-    ring1.Position = UDim2.new(0.5,-ringSize/2,0.5,-ringSize/2 - 40)
+    ring1.Size = UDim2.new(0,200,0,200)
+    ring1.Position = UDim2.new(0.5,-100,0.5,-140)
     ring1.BackgroundTransparency = 1
     ring1.Parent = bg
-
     local ring1Img = Instance.new("ImageLabel")
     ring1Img.Size = UDim2.new(1,0,1,0)
     ring1Img.BackgroundTransparency = 1
@@ -296,60 +264,56 @@ function Moxie:LoadingScreen()
     ring1Img.ImageColor3 = ActiveTheme.Accent
     ring1Img.ImageTransparency = 0.3
     ring1Img.Parent = ring1
-
-    local logoSize = IsMobile and 70 or 90
     local logo = Instance.new("Frame")
-    logo.Size = UDim2.new(0,logoSize,0,logoSize)
-    logo.Position = UDim2.new(0.5,-logoSize/2,0.5,-logoSize/2 - 40)
+    logo.Size = UDim2.new(0,90,0,90)
+    logo.Position = UDim2.new(0.5,-45,0.5,-105)
     logo.BackgroundColor3 = ActiveTheme.Accent
     logo.BackgroundTransparency = 0.8
     logo.BorderSizePixel = 0
     logo.Parent = bg
     Instance.new("UICorner",logo).CornerRadius = UDim.new(0,20)
-
+    local logoGrad = Instance.new("UIGradient")
+    logoGrad.Color = ColorSequence.new{ColorSequenceKeypoint.new(0,Color3.new(1,1,1)),ColorSequenceKeypoint.new(1,ActiveTheme.Accent)}
+    logoGrad.Rotation = 45
+    logoGrad.Parent = logo
     local logoText = Instance.new("TextLabel")
     logoText.Size = UDim2.new(1,0,1,0)
     logoText.BackgroundTransparency = 1
     logoText.Text = Config.Logo
     logoText.TextColor3 = Color3.new(1,1,1)
     logoText.Font = Enum.Font.GothamBold
-    logoText.TextSize = IsMobile and 36 or 48
+    logoText.TextSize = 48
     logoText.Parent = logo
-
     local nameLabel = Instance.new("TextLabel")
     nameLabel.Size = UDim2.new(0,400,0,55)
-    nameLabel.Position = UDim2.new(0.5,-200,0.5,logoSize/2 - 20)
+    nameLabel.Position = UDim2.new(0.5,-200,0.5,22)
     nameLabel.BackgroundTransparency = 1
     nameLabel.Text = Config.Name
     nameLabel.TextColor3 = Color3.new(1,1,1)
     nameLabel.Font = Enum.Font.GothamBold
-    nameLabel.TextSize = IsMobile and 32 or 44
+    nameLabel.TextSize = 44
     nameLabel.TextTransparency = 1
     nameLabel.Parent = bg
-
     local nameGrad = Instance.new("UIGradient")
     nameGrad.Color = ColorSequence.new{ColorSequenceKeypoint.new(0,ActiveTheme.Accent),ColorSequenceKeypoint.new(0.5,Color3.new(1,1,1)),ColorSequenceKeypoint.new(1,ActiveTheme.Accent)}
     nameGrad.Parent = nameLabel
-
     local barBg = Instance.new("Frame")
-    barBg.Size = UDim2.new(0,IsMobile and 250 or 340,0,5)
-    barBg.Position = UDim2.new(0.5,IsMobile and -125 or -170,0.5,logoSize/2 + 50)
+    barBg.Size = UDim2.new(0,340,0,5)
+    barBg.Position = UDim2.new(0.5,-170,0.5,120)
     barBg.BackgroundColor3 = Color3.fromRGB(30,30,30)
     barBg.BackgroundTransparency = 1
     barBg.BorderSizePixel = 0
     barBg.Parent = bg
     Instance.new("UICorner",barBg).CornerRadius = UDim.new(1,0)
-
     local barFill = Instance.new("Frame")
     barFill.Size = UDim2.new(0,0,1,0)
     barFill.BackgroundColor3 = ActiveTheme.Accent
     barFill.BorderSizePixel = 0
     barFill.Parent = barBg
     Instance.new("UICorner",barFill).CornerRadius = UDim.new(1,0)
-
     local statusLabel = Instance.new("TextLabel")
     statusLabel.Size = UDim2.new(0,340,0,20)
-    statusLabel.Position = UDim2.new(0.5,-170,0.5,logoSize/2 + 62)
+    statusLabel.Position = UDim2.new(0.5,-170,0.5,133)
     statusLabel.BackgroundTransparency = 1
     statusLabel.Text = ""
     statusLabel.TextColor3 = ActiveTheme.DarkText
@@ -357,7 +321,6 @@ function Moxie:LoadingScreen()
     statusLabel.TextSize = 13
     statusLabel.TextTransparency = 1
     statusLabel.Parent = bg
-
     local conn = RunService.RenderStepped:Connect(function(dt)
         ring1.Rotation = ring1.Rotation + 60 * dt
         logo.Rotation = logo.Rotation + 10 * dt
@@ -369,9 +332,7 @@ function Moxie:LoadingScreen()
             end
         end
     end)
-
     local completed = false
-
     task.spawn(function()
         task.wait(0.3)
         TweenService:Create(nameLabel, TweenInfo.new(0.8, Enum.EasingStyle.Quint), {TextTransparency = 0}):Play()
@@ -379,7 +340,6 @@ function Moxie:LoadingScreen()
         TweenService:Create(barBg, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {BackgroundTransparency = 0}):Play()
         TweenService:Create(statusLabel, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {TextTransparency = 0}):Play()
         task.wait(0.5)
-
         local steps = {
             {text = "Initializing " .. Config.Name .. "...", p = 0.2},
             {text = "Loading Modules...", p = 0.4},
@@ -387,13 +347,11 @@ function Moxie:LoadingScreen()
             {text = "Building Interface...", p = 0.85},
             {text = "Ready!", p = 1.0},
         }
-
         for _, step in ipairs(steps) do
             statusLabel.Text = step.text
             TweenService:Create(barFill, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {Size = UDim2.new(step.p,0,1,0)}):Play()
             task.wait(0.45)
         end
-
         task.wait(0.4)
         TweenService:Create(nameLabel, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {TextTransparency = 1}):Play()
         TweenService:Create(statusLabel, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {TextTransparency = 1}):Play()
@@ -411,7 +369,6 @@ function Moxie:LoadingScreen()
         gui:Destroy()
         completed = true
     end)
-
     repeat task.wait() until completed
 end
 
@@ -419,17 +376,14 @@ function Moxie:Notify(title, text, duration)
     duration = duration or 4
     local gui = game.CoreGui:FindFirstChild("MoxieUI") or Instance.new("ScreenGui", game.CoreGui)
     gui.Name = "MoxieUI"
-
-    local notifWidth = IsMobile and 280 or 340
     local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0,notifWidth,0,80)
+    frame.Size = UDim2.new(0,340,0,80)
     frame.Position = UDim2.new(1,20,1,-100 - (#Notifications * 90))
     frame.BackgroundColor3 = ActiveTheme.Main
     frame.BorderSizePixel = 0
     frame.Parent = gui
     Instance.new("UICorner", frame).CornerRadius = UDim.new(0,14)
     ApplyGradient(frame)
-
     local accent = Instance.new("Frame")
     accent.Size = UDim2.new(0,4,1,-20)
     accent.Position = UDim2.new(0,0,0,10)
@@ -437,7 +391,6 @@ function Moxie:Notify(title, text, duration)
     accent.BorderSizePixel = 0
     accent.Parent = frame
     Instance.new("UICorner", accent).CornerRadius = UDim.new(1,0)
-
     local t = Instance.new("TextLabel")
     t.Size = UDim2.new(1,-20,0,26)
     t.Position = UDim2.new(0,15,0,8)
@@ -448,7 +401,6 @@ function Moxie:Notify(title, text, duration)
     t.TextSize = 14
     t.TextXAlignment = Enum.TextXAlignment.Left
     t.Parent = frame
-
     local d = Instance.new("TextLabel")
     d.Size = UDim2.new(1,-20,0,38)
     d.Position = UDim2.new(0,15,0,34)
@@ -460,12 +412,10 @@ function Moxie:Notify(title, text, duration)
     d.TextWrapped = true
     d.TextXAlignment = Enum.TextXAlignment.Left
     d.Parent = frame
-
     table.insert(Notifications, frame)
-    TweenSingle(frame, "Position", UDim2.new(1,-(notifWidth+20),1,-100 - ((#Notifications-1)*90)), 0.5)
-
+    Tween(frame, "Position", UDim2.new(1,-360,1,-100 - ((#Notifications-1)*90)), 0.5)
     task.delay(duration, function()
-        TweenSingle(frame, "Position", UDim2.new(1,20,1,frame.Position.Y.Offset), 0.5)
+        Tween(frame, "Position", UDim2.new(1,20,1,frame.Position.Y.Offset), 0.5)
         task.wait(0.6)
         frame:Destroy()
         table.remove(Notifications, table.find(Notifications, frame))
@@ -475,11 +425,6 @@ end
 function Moxie:CreateWindow(title)
     local Window = {}
 
-    local mainWidth = IsMobile and 380 or 720
-    local mainHeight = IsMobile and 400 or 540
-    local tabWidth = IsMobile and 120 or 180
-    local titleHeight = IsMobile and 50 or 60
-
     local ScreenGui = Instance.new("ScreenGui")
     ScreenGui.Name = "MoxieUI"
     ScreenGui.ResetOnSpawn = false
@@ -487,18 +432,21 @@ function Moxie:CreateWindow(title)
     ScreenGui.Parent = game.CoreGui
 
     local Main = Instance.new("Frame")
-    Main.Size = UDim2.new(0,mainWidth,0,mainHeight)
-    Main.Position = UDim2.new(0.5,-mainWidth/2,0.5,-mainHeight/2)
+    Main.Size = UDim2.new(0,720,0,540)
+    Main.Position = UDim2.new(0.5,-360,0.5,-270)
     Main.BackgroundColor3 = ActiveTheme.Main
     Main.BorderSizePixel = 0
+    Main.ClipsDescendants = true
     Main.Parent = ScreenGui
     Instance.new("UICorner", Main).CornerRadius = UDim.new(0,16)
     ApplyGradient(Main)
 
     local TitleBar = Instance.new("Frame")
-    TitleBar.Size = UDim2.new(1,0,0,titleHeight)
+    TitleBar.Name = "TitleBar"
+    TitleBar.Size = UDim2.new(1,0,0,60)
     TitleBar.BackgroundColor3 = ActiveTheme.Secondary
     TitleBar.BorderSizePixel = 0
+    TitleBar.ZIndex = 5
     TitleBar.Parent = Main
     Instance.new("UICorner", TitleBar).CornerRadius = UDim.new(0,16)
 
@@ -507,6 +455,7 @@ function Moxie:CreateWindow(title)
     TitleAccent.Position = UDim2.new(0,12,0.5,-12)
     TitleAccent.BackgroundColor3 = ActiveTheme.Accent
     TitleAccent.BorderSizePixel = 0
+    TitleAccent.ZIndex = 5
     TitleAccent.Parent = TitleBar
     Instance.new("UICorner", TitleAccent).CornerRadius = UDim.new(1,0)
 
@@ -517,8 +466,9 @@ function Moxie:CreateWindow(title)
     TitleLabel.Text = title or Config.Name
     TitleLabel.TextColor3 = ActiveTheme.Text
     TitleLabel.Font = Enum.Font.GothamBold
-    TitleLabel.TextSize = IsMobile and 15 or 18
+    TitleLabel.TextSize = 18
     TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    TitleLabel.ZIndex = 5
     TitleLabel.Parent = TitleBar
 
     local MinBtn = Instance.new("TextButton")
@@ -529,6 +479,7 @@ function Moxie:CreateWindow(title)
     MinBtn.TextColor3 = ActiveTheme.DarkText
     MinBtn.Font = Enum.Font.GothamBold
     MinBtn.TextSize = 18
+    MinBtn.ZIndex = 5
     MinBtn.Parent = TitleBar
     Instance.new("UICorner", MinBtn).CornerRadius = UDim.new(0,8)
 
@@ -540,32 +491,42 @@ function Moxie:CreateWindow(title)
     CloseBtn.TextColor3 = Color3.new(1,1,1)
     CloseBtn.Font = Enum.Font.GothamBold
     CloseBtn.TextSize = 14
+    CloseBtn.ZIndex = 5
     CloseBtn.Parent = TitleBar
     Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(0,8)
 
     CloseBtn.MouseButton1Click:Connect(function()
-        TweenSingle(Main, "Size", UDim2.new(0,mainWidth,0,0), 0.4)
+        Tween(Main, "Size", UDim2.new(0,720,0,0), 0.4)
         task.wait(0.5)
         ScreenGui:Destroy()
     end)
 
+    local Body = Instance.new("Frame")
+    Body.Name = "Body"
+    Body.Size = UDim2.new(1,0,1,-60)
+    Body.Position = UDim2.new(0,0,0,60)
+    Body.BackgroundTransparency = 1
+    Body.BorderSizePixel = 0
+    Body.Parent = Main
+
     local minimized = false
     MinBtn.MouseButton1Click:Connect(function()
         minimized = not minimized
-        TweenSingle(Main, "Size", minimized and UDim2.new(0,mainWidth,0,titleHeight) or UDim2.new(0,mainWidth,0,mainHeight), 0.4)
+        Tween(Body, "Size", minimized and UDim2.new(1,0,0,0) or UDim2.new(1,0,1,-60), 0.4)
+        Tween(Main, "Size", minimized and UDim2.new(0,720,0,60) or UDim2.new(0,720,0,540), 0.4)
     end)
 
     MakeDraggable(TitleBar, Main)
 
     local TabBar = Instance.new("ScrollingFrame")
-    TabBar.Size = UDim2.new(0,tabWidth,1,-titleHeight)
-    TabBar.Position = UDim2.new(0,0,0,titleHeight)
+    TabBar.Size = UDim2.new(0,180,1,-36)
+    TabBar.Position = UDim2.new(0,0,0,36)
     TabBar.BackgroundColor3 = ActiveTheme.Secondary
     TabBar.BorderSizePixel = 0
     TabBar.ScrollBarThickness = 3
     TabBar.CanvasSize = UDim2.new(0,0,0,0)
     TabBar.AutomaticCanvasSize = Enum.AutomaticSize.Y
-    TabBar.Parent = Main
+    TabBar.Parent = Body
 
     local TabLayout = Instance.new("UIListLayout", TabBar)
     TabLayout.SortOrder = Enum.SortOrder.LayoutOrder
@@ -578,8 +539,8 @@ function Moxie:CreateWindow(title)
     TabPad.PaddingBottom = UDim.new(0,6)
 
     local SearchBox = Instance.new("TextBox")
-    SearchBox.Size = UDim2.new(0,tabWidth - 16,0,28)
-    SearchBox.Position = UDim2.new(0,8,0,titleHeight + 6)
+    SearchBox.Size = UDim2.new(0,180,0,30)
+    SearchBox.Position = UDim2.new(0,0,0,0)
     SearchBox.BackgroundColor3 = ActiveTheme.Secondary
     SearchBox.BorderSizePixel = 0
     SearchBox.Text = ""
@@ -587,8 +548,8 @@ function Moxie:CreateWindow(title)
     SearchBox.TextColor3 = ActiveTheme.Text
     SearchBox.PlaceholderColor3 = ActiveTheme.DarkText
     SearchBox.Font = Enum.Font.Gotham
-    SearchBox.TextSize = 12
-    SearchBox.Parent = Main
+    SearchBox.TextSize = 13
+    SearchBox.Parent = Body
     Instance.new("UICorner", SearchBox).CornerRadius = UDim.new(0,6)
 
     Window.CurrentTab = nil
@@ -603,59 +564,57 @@ function Moxie:CreateWindow(title)
         end
     end)
 
-    local contentTop = titleHeight + 40
-
     function Window:CreateTab(name)
         local TabBtn = Instance.new("TextButton")
-        TabBtn.Size = UDim2.new(1,0,0,IsMobile and 36 or 40)
+        TabBtn.Size = UDim2.new(1,0,0,40)
         TabBtn.BackgroundColor3 = ActiveTheme.Main
         TabBtn.Text = name
         TabBtn.TextColor3 = ActiveTheme.DarkText
         TabBtn.Font = Enum.Font.GothamSemibold
-        TabBtn.TextSize = IsMobile and 12 or 14
+        TabBtn.TextSize = 14
         TabBtn.Parent = TabBar
         Instance.new("UICorner", TabBtn).CornerRadius = UDim.new(0,8)
 
         local Page = Instance.new("ScrollingFrame")
-        Page.Size = UDim2.new(1,-tabWidth - 16,1,-contentTop - 8)
-        Page.Position = UDim2.new(0,tabWidth + 8,0,contentTop)
+        Page.Size = UDim2.new(1,-188,1,0)
+        Page.Position = UDim2.new(0,188,0,0)
         Page.BackgroundTransparency = 1
         Page.ScrollBarThickness = 4
         Page.Visible = false
         Page.CanvasSize = UDim2.new(0,0,0,0)
         Page.AutomaticCanvasSize = Enum.AutomaticSize.Y
-        Page.Parent = Main
+        Page.Parent = Body
 
         local PageLayout = Instance.new("UIListLayout", Page)
         PageLayout.SortOrder = Enum.SortOrder.LayoutOrder
         PageLayout.Padding = UDim.new(0,8)
 
         local PagePad = Instance.new("UIPadding", Page)
-        PagePad.PaddingTop = UDim.new(0,4)
-        PagePad.PaddingRight = UDim.new(0,8)
+        PagePad.PaddingTop = UDim.new(0,8)
+        PagePad.PaddingRight = UDim.new(0,10)
         PagePad.PaddingBottom = UDim.new(0,8)
+        PagePad.PaddingLeft = UDim.new(0,4)
 
         TabBtn.MouseButton1Click:Connect(function()
             if Window.CurrentTab then
                 Window.CurrentTab.Page.Visible = false
-                TweenSingle(Window.CurrentTab.Button, "BackgroundColor3", ActiveTheme.Main, 0.2)
+                Tween(Window.CurrentTab.Button, "BackgroundColor3", ActiveTheme.Main, 0.2)
                 Window.CurrentTab.Button.TextColor3 = ActiveTheme.DarkText
             end
             Page.Visible = true
-            TweenSingle(TabBtn, "BackgroundColor3", ActiveTheme.Accent, 0.2)
+            Tween(TabBtn, "BackgroundColor3", ActiveTheme.Accent, 0.2)
             TabBtn.TextColor3 = ActiveTheme.Text
             Window.CurrentTab = {Button = TabBtn, Page = Page}
         end)
 
         if not Window.CurrentTab then
             Page.Visible = true
-            TweenSingle(TabBtn, "BackgroundColor3", ActiveTheme.Accent, 0.2)
+            Tween(TabBtn, "BackgroundColor3", ActiveTheme.Accent, 0.2)
             TabBtn.TextColor3 = ActiveTheme.Text
             Window.CurrentTab = {Button = TabBtn, Page = Page}
         end
 
         local Tab = {}
-        local elemHeight = IsMobile and 38 or 44
 
         local function Register(n, inst)
             table.insert(Window.AllElements, {Name = n, Instance = inst})
@@ -666,7 +625,6 @@ function Moxie:CreateWindow(title)
             section.Size = UDim2.new(1,0,0,24)
             section.BackgroundTransparency = 1
             section.Parent = Page
-
             local line = Instance.new("Frame")
             line.Size = UDim2.new(1,0,0,1)
             line.Position = UDim2.new(0,0,0.5,0)
@@ -674,7 +632,6 @@ function Moxie:CreateWindow(title)
             line.BackgroundTransparency = 0.6
             line.BorderSizePixel = 0
             line.Parent = section
-
             local label = Instance.new("TextLabel")
             label.Size = UDim2.new(0,0,1,0)
             label.AutomaticSize = Enum.AutomaticSize.X
@@ -705,18 +662,18 @@ function Moxie:CreateWindow(title)
 
         function Tab:CreateButton(text, callback)
             local btn = Instance.new("TextButton")
-            btn.Size = UDim2.new(1,0,0,elemHeight)
+            btn.Size = UDim2.new(1,0,0,44)
             btn.BackgroundColor3 = ActiveTheme.Secondary
             btn.Text = text
             btn.TextColor3 = ActiveTheme.Text
             btn.Font = Enum.Font.GothamSemibold
-            btn.TextSize = IsMobile and 12 or 14
+            btn.TextSize = 14
             btn.Parent = Page
             Instance.new("UICorner", btn).CornerRadius = UDim.new(0,10)
             Register(text, btn)
             btn.MouseButton1Click:Connect(function()
-                TweenSingle(btn, "BackgroundColor3", ActiveTheme.Accent, 0.1)
-                task.delay(0.15, function() TweenSingle(btn, "BackgroundColor3", ActiveTheme.Secondary, 0.2) end)
+                Tween(btn, "BackgroundColor3", ActiveTheme.Accent, 0.1)
+                task.delay(0.15, function() Tween(btn, "BackgroundColor3", ActiveTheme.Secondary, 0.2) end)
                 callback()
             end)
         end
@@ -724,17 +681,16 @@ function Moxie:CreateWindow(title)
         function Tab:CreateToggle(text, default, callback)
             local state = default or false
             local toggle = Instance.new("TextButton")
-            toggle.Size = UDim2.new(1,0,0,elemHeight)
+            toggle.Size = UDim2.new(1,0,0,44)
             toggle.BackgroundColor3 = ActiveTheme.Secondary
             toggle.Text = "   " .. text
             toggle.TextXAlignment = Enum.TextXAlignment.Left
             toggle.TextColor3 = ActiveTheme.Text
             toggle.Font = Enum.Font.GothamSemibold
-            toggle.TextSize = IsMobile and 12 or 14
+            toggle.TextSize = 14
             toggle.Parent = Page
             Instance.new("UICorner", toggle).CornerRadius = UDim.new(0,10)
             Register(text, toggle)
-
             local switchBg = Instance.new("Frame")
             switchBg.Size = UDim2.new(0,40,0,22)
             switchBg.Position = UDim2.new(1,-52,0.5,-11)
@@ -742,7 +698,6 @@ function Moxie:CreateWindow(title)
             switchBg.BorderSizePixel = 0
             switchBg.Parent = toggle
             Instance.new("UICorner", switchBg).CornerRadius = UDim.new(1,0)
-
             local dot = Instance.new("Frame")
             dot.Size = UDim2.new(0,16,0,16)
             dot.Position = state and UDim2.new(1,-19,0.5,-8) or UDim2.new(0,3,0.5,-8)
@@ -750,16 +705,19 @@ function Moxie:CreateWindow(title)
             dot.BorderSizePixel = 0
             dot.Parent = switchBg
             Instance.new("UICorner", dot).CornerRadius = UDim.new(1,0)
-
             toggle.MouseButton1Click:Connect(function()
                 state = not state
-                TweenSingle(switchBg, "BackgroundColor3", state and ActiveTheme.Accent or Color3.fromRGB(55,55,55), 0.25)
-                TweenSingle(dot, "Position", state and UDim2.new(1,-19,0.5,-8) or UDim2.new(0,3,0.5,-8), 0.25)
+                Tween(switchBg, "BackgroundColor3", state and ActiveTheme.Accent or Color3.fromRGB(55,55,55), 0.25)
+                Tween(dot, "Position", state and UDim2.new(1,-19,0.5,-8) or UDim2.new(0,3,0.5,-8), 0.25)
                 callback(state)
             end)
-
             return {
-                Set = function(_, v) state = v TweenSingle(switchBg, "BackgroundColor3", state and ActiveTheme.Accent or Color3.fromRGB(55,55,55), 0.25) TweenSingle(dot, "Position", state and UDim2.new(1,-19,0.5,-8) or UDim2.new(0,3,0.5,-8), 0.25) callback(state) end,
+                Set = function(_, v)
+                    state = v
+                    Tween(switchBg, "BackgroundColor3", state and ActiveTheme.Accent or Color3.fromRGB(55,55,55), 0.25)
+                    Tween(dot, "Position", state and UDim2.new(1,-19,0.5,-8) or UDim2.new(0,3,0.5,-8), 0.25)
+                    callback(state)
+                end,
                 Get = function() return state end
             }
         end
@@ -768,12 +726,11 @@ function Moxie:CreateWindow(title)
             local value = default or min
             local sliding = false
             local slider = Instance.new("Frame")
-            slider.Size = UDim2.new(1,0,0,IsMobile and 54 or 60)
+            slider.Size = UDim2.new(1,0,0,60)
             slider.BackgroundColor3 = ActiveTheme.Secondary
             slider.Parent = Page
             Instance.new("UICorner", slider).CornerRadius = UDim.new(0,10)
             Register(text, slider)
-
             local label = Instance.new("TextLabel", slider)
             label.Size = UDim2.new(1,-60,0,22)
             label.Position = UDim2.new(0,12,0,6)
@@ -781,9 +738,8 @@ function Moxie:CreateWindow(title)
             label.Text = text
             label.TextColor3 = ActiveTheme.Text
             label.Font = Enum.Font.GothamSemibold
-            label.TextSize = IsMobile and 12 or 14
+            label.TextSize = 14
             label.TextXAlignment = Enum.TextXAlignment.Left
-
             local val = Instance.new("TextLabel", slider)
             val.Size = UDim2.new(0,50,0,22)
             val.Position = UDim2.new(1,-55,0,6)
@@ -791,20 +747,17 @@ function Moxie:CreateWindow(title)
             val.Text = tostring(value)
             val.TextColor3 = ActiveTheme.Accent
             val.Font = Enum.Font.GothamBold
-            val.TextSize = IsMobile and 12 or 14
+            val.TextSize = 14
             val.TextXAlignment = Enum.TextXAlignment.Right
-
             local bar = Instance.new("Frame", slider)
             bar.Size = UDim2.new(1,-24,0,8)
             bar.Position = UDim2.new(0,12,1,-20)
             bar.BackgroundColor3 = Color3.fromRGB(45,45,45)
             Instance.new("UICorner", bar).CornerRadius = UDim.new(1,0)
-
             local fill = Instance.new("Frame", bar)
             fill.Size = UDim2.new(max > min and (value-min)/(max-min) or 0,0,1,0)
             fill.BackgroundColor3 = ActiveTheme.Accent
             Instance.new("UICorner", fill).CornerRadius = UDim.new(1,0)
-
             local sdot = Instance.new("Frame", bar)
             sdot.Size = UDim2.new(0,16,0,16)
             sdot.Position = UDim2.new(max > min and (value-min)/(max-min) or 0,-8,0.5,-8)
@@ -812,50 +765,47 @@ function Moxie:CreateWindow(title)
             sdot.ZIndex = 5
             sdot.BorderSizePixel = 0
             Instance.new("UICorner", sdot).CornerRadius = UDim.new(1,0)
-
             local function update(inputPos)
-                local absPos = bar.AbsolutePosition.X
                 local absSize = bar.AbsoluteSize.X
                 if absSize <= 0 then return end
-                local posX = inputPos
-                if typeof(inputPos) == "Vector2" then posX = inputPos.X end
-                if typeof(inputPos) == "Vector3" then posX = inputPos.X end
-                local size = math.clamp((posX - absPos) / absSize, 0, 1)
+                local posX = typeof(inputPos) == "Vector2" and inputPos.X or inputPos.X
+                local size = math.clamp((posX - bar.AbsolutePosition.X) / absSize, 0, 1)
                 value = math.floor(min + (max - min) * size)
                 val.Text = tostring(value)
                 fill.Size = UDim2.new(size,0,1,0)
                 sdot.Position = UDim2.new(size,-8,0.5,-8)
                 callback(value)
             end
-
             bar.InputBegan:Connect(function(inp)
                 if inp.UserInputType == Enum.UserInputType.MouseButton1 or inp.UserInputType == Enum.UserInputType.Touch then
                     sliding = true
                     update(inp.Position)
                 end
             end)
-
             sdot.InputBegan:Connect(function(inp)
                 if inp.UserInputType == Enum.UserInputType.MouseButton1 or inp.UserInputType == Enum.UserInputType.Touch then
                     sliding = true
-                    update(inp.Position)
                 end
             end)
-
             UserInputService.InputChanged:Connect(function(inp)
                 if sliding and (inp.UserInputType == Enum.UserInputType.MouseMovement or inp.UserInputType == Enum.UserInputType.Touch) then
                     update(inp.Position)
                 end
             end)
-
             UserInputService.InputEnded:Connect(function(inp)
                 if inp.UserInputType == Enum.UserInputType.MouseButton1 or inp.UserInputType == Enum.UserInputType.Touch then
                     sliding = false
                 end
             end)
-
             return {
-                Set = function(_, v) value = math.clamp(v,min,max) local s = (value-min)/(max-min) val.Text = tostring(value) fill.Size = UDim2.new(s,0,1,0) sdot.Position = UDim2.new(s,-8,0.5,-8) callback(value) end,
+                Set = function(_, v)
+                    value = math.clamp(v,min,max)
+                    local s = (value-min)/(max-min)
+                    val.Text = tostring(value)
+                    fill.Size = UDim2.new(s,0,1,0)
+                    sdot.Position = UDim2.new(s,-8,0.5,-8)
+                    callback(value)
+                end,
                 Get = function() return value end
             }
         end
@@ -863,25 +813,22 @@ function Moxie:CreateWindow(title)
         function Tab:CreateDropdown(text, list, default, callback)
             local selected = default or list[1]
             local open = false
-
             local holder = Instance.new("Frame")
-            holder.Size = UDim2.new(1,0,0,elemHeight)
+            holder.Size = UDim2.new(1,0,0,44)
             holder.BackgroundTransparency = 1
             holder.ClipsDescendants = false
             holder.Parent = Page
             Register(text, holder)
-
             local dropdown = Instance.new("TextButton")
-            dropdown.Size = UDim2.new(1,0,0,elemHeight)
+            dropdown.Size = UDim2.new(1,0,0,44)
             dropdown.BackgroundColor3 = ActiveTheme.Secondary
             dropdown.Text = "   " .. text .. ":  " .. selected
             dropdown.TextXAlignment = Enum.TextXAlignment.Left
             dropdown.TextColor3 = ActiveTheme.Text
             dropdown.Font = Enum.Font.GothamSemibold
-            dropdown.TextSize = IsMobile and 12 or 14
+            dropdown.TextSize = 14
             dropdown.Parent = holder
             Instance.new("UICorner", dropdown).CornerRadius = UDim.new(0,10)
-
             local arrow = Instance.new("TextLabel")
             arrow.Size = UDim2.new(0,30,1,0)
             arrow.Position = UDim2.new(1,-35,0,0)
@@ -891,7 +838,6 @@ function Moxie:CreateWindow(title)
             arrow.Font = Enum.Font.GothamBold
             arrow.TextSize = 14
             arrow.Parent = dropdown
-
             local dropFrame = Instance.new("ScrollingFrame")
             dropFrame.Size = UDim2.new(1,0,0,0)
             dropFrame.Position = UDim2.new(0,0,1,4)
@@ -899,18 +845,16 @@ function Moxie:CreateWindow(title)
             dropFrame.ClipsDescendants = true
             dropFrame.ScrollBarThickness = 3
             dropFrame.ZIndex = 20
+            dropFrame.CanvasSize = UDim2.new(0,0,0,#list * 32)
             dropFrame.Parent = holder
             Instance.new("UICorner", dropFrame).CornerRadius = UDim.new(0,10)
             Instance.new("UIListLayout", dropFrame).SortOrder = Enum.SortOrder.LayoutOrder
-
             dropdown.MouseButton1Click:Connect(function()
                 open = not open
                 local targetH = open and math.min(#list * 32, 150) or 0
-                TweenSingle(dropFrame, "Size", UDim2.new(1,0,0,targetH), 0.3)
-                dropFrame.CanvasSize = UDim2.new(0,0,0,#list * 32)
+                Tween(dropFrame, "Size", UDim2.new(1,0,0,targetH), 0.3)
                 arrow.Text = open and "^" or "v"
             end)
-
             for _, option in ipairs(list) do
                 local btn = Instance.new("TextButton")
                 btn.Size = UDim2.new(1,0,0,32)
@@ -918,20 +862,21 @@ function Moxie:CreateWindow(title)
                 btn.Text = "  " .. option
                 btn.TextColor3 = ActiveTheme.Text
                 btn.Font = Enum.Font.Gotham
-                btn.TextSize = 12
+                btn.TextSize = 13
                 btn.TextXAlignment = Enum.TextXAlignment.Left
                 btn.ZIndex = 21
                 btn.Parent = dropFrame
                 btn.MouseButton1Click:Connect(function()
                     selected = option
                     dropdown.Text = "   " .. text .. ":  " .. selected
-                    TweenSingle(dropFrame, "Size", UDim2.new(1,0,0,0), 0.3)
+                    Tween(dropFrame, "Size", UDim2.new(1,0,0,0), 0.3)
                     open = false
                     arrow.Text = "v"
                     callback(selected)
                 end)
+                btn.MouseEnter:Connect(function() btn.TextColor3 = ActiveTheme.Accent end)
+                btn.MouseLeave:Connect(function() btn.TextColor3 = ActiveTheme.Text end)
             end
-
             return {
                 Set = function(_, v) selected = v dropdown.Text = "   " .. text .. ":  " .. selected callback(selected) end,
                 Get = function() return selected end
@@ -940,13 +885,12 @@ function Moxie:CreateWindow(title)
 
         function Tab:CreateInput(text, placeholder, callback)
             local holder = Instance.new("Frame")
-            holder.Size = UDim2.new(1,0,0,elemHeight)
+            holder.Size = UDim2.new(1,0,0,44)
             holder.BackgroundColor3 = ActiveTheme.Secondary
             holder.BorderSizePixel = 0
             holder.Parent = Page
             Instance.new("UICorner", holder).CornerRadius = UDim.new(0,10)
             Register(text, holder)
-
             local label = Instance.new("TextLabel", holder)
             label.Size = UDim2.new(0.4,0,1,0)
             label.Position = UDim2.new(0,10,0,0)
@@ -954,16 +898,14 @@ function Moxie:CreateWindow(title)
             label.Text = text
             label.TextColor3 = ActiveTheme.Text
             label.Font = Enum.Font.GothamSemibold
-            label.TextSize = IsMobile and 11 or 13
+            label.TextSize = 13
             label.TextXAlignment = Enum.TextXAlignment.Left
-
             local inputBg = Instance.new("Frame", holder)
             inputBg.Size = UDim2.new(0.55,0,0,28)
             inputBg.Position = UDim2.new(0.43,0,0.5,-14)
             inputBg.BackgroundColor3 = ActiveTheme.Main
             inputBg.BorderSizePixel = 0
             Instance.new("UICorner", inputBg).CornerRadius = UDim.new(0,8)
-
             local input = Instance.new("TextBox", inputBg)
             input.Size = UDim2.new(1,-10,1,0)
             input.Position = UDim2.new(0,5,0,0)
@@ -973,11 +915,9 @@ function Moxie:CreateWindow(title)
             input.TextColor3 = ActiveTheme.Text
             input.PlaceholderColor3 = ActiveTheme.DarkText
             input.Font = Enum.Font.Gotham
-            input.TextSize = 12
+            input.TextSize = 13
             input.TextXAlignment = Enum.TextXAlignment.Left
-
             input.FocusLost:Connect(function(enter) if enter then callback(input.Text) end end)
-
             return {
                 Get = function() return input.Text end,
                 Set = function(_, v) input.Text = v end
@@ -987,19 +927,17 @@ function Moxie:CreateWindow(title)
         function Tab:CreateKeybind(text, defaultKey, callback)
             local key = defaultKey or Enum.KeyCode.RightShift
             local listening = false
-
             local bindBtn = Instance.new("TextButton")
-            bindBtn.Size = UDim2.new(1,0,0,elemHeight)
+            bindBtn.Size = UDim2.new(1,0,0,44)
             bindBtn.BackgroundColor3 = ActiveTheme.Secondary
             bindBtn.Text = "   " .. text
             bindBtn.TextXAlignment = Enum.TextXAlignment.Left
             bindBtn.TextColor3 = ActiveTheme.Text
             bindBtn.Font = Enum.Font.GothamSemibold
-            bindBtn.TextSize = IsMobile and 12 or 14
+            bindBtn.TextSize = 14
             bindBtn.Parent = Page
             Instance.new("UICorner", bindBtn).CornerRadius = UDim.new(0,10)
             Register(text, bindBtn)
-
             local keyLabel = Instance.new("TextButton")
             keyLabel.Size = UDim2.new(0,70,0,24)
             keyLabel.Position = UDim2.new(1,-80,0.5,-12)
@@ -1010,13 +948,11 @@ function Moxie:CreateWindow(title)
             keyLabel.TextSize = 11
             keyLabel.Parent = bindBtn
             Instance.new("UICorner", keyLabel).CornerRadius = UDim.new(0,6)
-
             keyLabel.MouseButton1Click:Connect(function()
                 listening = true
                 keyLabel.Text = "..."
                 keyLabel.TextColor3 = ActiveTheme.DarkText
             end)
-
             UserInputService.InputBegan:Connect(function(inp)
                 if listening and inp.KeyCode ~= Enum.KeyCode.Unknown then
                     key = inp.KeyCode
@@ -1026,39 +962,34 @@ function Moxie:CreateWindow(title)
                     callback(key)
                 end
             end)
-
             return {Get = function() return key end}
         end
 
         function Tab:CreateColorPicker(text, default, callback)
             local color = default or ActiveTheme.Accent
             local open = false
-
             local pickerHolder = Instance.new("Frame")
-            pickerHolder.Size = UDim2.new(1,0,0,elemHeight)
+            pickerHolder.Size = UDim2.new(1,0,0,44)
             pickerHolder.BackgroundColor3 = ActiveTheme.Secondary
             pickerHolder.ClipsDescendants = false
             pickerHolder.Parent = Page
             Instance.new("UICorner", pickerHolder).CornerRadius = UDim.new(0,10)
             Register(text, pickerHolder)
-
             local picker = Instance.new("TextButton")
-            picker.Size = UDim2.new(1,0,0,elemHeight)
+            picker.Size = UDim2.new(1,0,0,44)
             picker.BackgroundTransparency = 1
             picker.Text = "   " .. text
             picker.TextXAlignment = Enum.TextXAlignment.Left
             picker.TextColor3 = ActiveTheme.Text
             picker.Font = Enum.Font.GothamSemibold
-            picker.TextSize = IsMobile and 12 or 14
+            picker.TextSize = 14
             picker.Parent = pickerHolder
-
             local preview = Instance.new("Frame")
             preview.Size = UDim2.new(0,28,0,28)
             preview.Position = UDim2.new(1,-40,0.5,-14)
             preview.BackgroundColor3 = color
             preview.Parent = pickerHolder
             Instance.new("UICorner", preview).CornerRadius = UDim.new(0,8)
-
             local colorPanel = Instance.new("Frame")
             colorPanel.Size = UDim2.new(1,0,0,0)
             colorPanel.Position = UDim2.new(0,0,1,4)
@@ -1067,7 +998,6 @@ function Moxie:CreateWindow(title)
             colorPanel.ZIndex = 10
             colorPanel.Parent = pickerHolder
             Instance.new("UICorner", colorPanel).CornerRadius = UDim.new(0,10)
-
             local function makeBar(yPos, gradColors)
                 local f = Instance.new("Frame")
                 f.Size = UDim2.new(1,-20,0,14)
@@ -1088,23 +1018,18 @@ function Moxie:CreateWindow(title)
                 Instance.new("UICorner",d).CornerRadius = UDim.new(1,0)
                 return f, g, d
             end
-
             local hueBar, hueGrad, hueDot = makeBar(10, ColorSequence.new{ColorSequenceKeypoint.new(0,Color3.fromRGB(255,0,0)),ColorSequenceKeypoint.new(0.166,Color3.fromRGB(255,255,0)),ColorSequenceKeypoint.new(0.333,Color3.fromRGB(0,255,0)),ColorSequenceKeypoint.new(0.5,Color3.fromRGB(0,255,255)),ColorSequenceKeypoint.new(0.666,Color3.fromRGB(0,0,255)),ColorSequenceKeypoint.new(0.833,Color3.fromRGB(255,0,255)),ColorSequenceKeypoint.new(1,Color3.fromRGB(255,0,0))})
             local satBar, satGrad, satDot = makeBar(34, ColorSequence.new{ColorSequenceKeypoint.new(0,Color3.new(1,1,1)),ColorSequenceKeypoint.new(1,color)})
             local valBar, valGrad, valDot = makeBar(58, ColorSequence.new{ColorSequenceKeypoint.new(0,Color3.new(0,0,0)),ColorSequenceKeypoint.new(1,Color3.new(1,1,1))})
-
             local h, s, v = Color3.toHSV(color)
-
             local function updateColor()
                 color = Color3.fromHSV(h,s,v)
                 preview.BackgroundColor3 = color
                 satGrad.Color = ColorSequence.new{ColorSequenceKeypoint.new(0,Color3.new(1,1,1)),ColorSequenceKeypoint.new(1,Color3.fromHSV(h,1,1))}
                 callback(color)
             end
-
             local function bindColorBar(bar, barDot, onChange)
                 local active = false
-
                 bar.InputBegan:Connect(function(inp)
                     if inp.UserInputType == Enum.UserInputType.MouseButton1 or inp.UserInputType == Enum.UserInputType.Touch then
                         active = true
@@ -1114,13 +1039,6 @@ function Moxie:CreateWindow(title)
                         updateColor()
                     end
                 end)
-
-                barDot.InputBegan:Connect(function(inp)
-                    if inp.UserInputType == Enum.UserInputType.MouseButton1 or inp.UserInputType == Enum.UserInputType.Touch then
-                        active = true
-                    end
-                end)
-
                 UserInputService.InputChanged:Connect(function(inp)
                     if active and (inp.UserInputType == Enum.UserInputType.MouseMovement or inp.UserInputType == Enum.UserInputType.Touch) then
                         local val2 = math.clamp((inp.Position.X - bar.AbsolutePosition.X) / bar.AbsoluteSize.X, 0, 1)
@@ -1129,23 +1047,19 @@ function Moxie:CreateWindow(title)
                         updateColor()
                     end
                 end)
-
                 UserInputService.InputEnded:Connect(function(inp)
                     if inp.UserInputType == Enum.UserInputType.MouseButton1 or inp.UserInputType == Enum.UserInputType.Touch then
                         active = false
                     end
                 end)
             end
-
             bindColorBar(hueBar, hueDot, function(val2) h = val2 end)
             bindColorBar(satBar, satDot, function(val2) s = val2 end)
             bindColorBar(valBar, valDot, function(val2) v = val2 end)
-
             picker.MouseButton1Click:Connect(function()
                 open = not open
-                TweenSingle(colorPanel, "Size", UDim2.new(1,0,0,open and 86 or 0), 0.35)
+                Tween(colorPanel, "Size", UDim2.new(1,0,0,open and 86 or 0), 0.35)
             end)
-
             return {
                 Get = function() return color end,
                 Set = function(_, c) color = c h,s,v = Color3.toHSV(color) preview.BackgroundColor3 = color callback(color) end
